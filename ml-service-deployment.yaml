@@ -1,0 +1,41 @@
+# File: ml-service-deployment.yaml
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plone-ml-service
+  labels:
+    app: plone-ml-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plone-ml-service
+  template:
+    metadata:
+      labels:
+        app: plone-ml-service
+    spec:
+      containers:
+      - name: ml-api
+        image: thor.tuxjob.ch:5000/plone-ml-service:v1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+        resources:
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plone-ml-service
+spec:
+  selector:
+    app: plone-ml-service
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
