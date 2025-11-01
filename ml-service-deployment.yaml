@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: thor.tuxjob.ch:5000/plone-ml-service:v1
+        image: vaporist/plone-ml-service:v1
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
