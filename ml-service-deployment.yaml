@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: vaporist/plone-ml-service:v1
+        image: vaporist/plone-ml-service:v2
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
