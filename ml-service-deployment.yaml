@@ -5,6 +5,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: plone-ml-service
+  namespace: ml # English Comment: CRITICAL: Define the 'ml' namespace
   labels:
     app: plone-ml-service
 spec:
@@ -19,20 +20,30 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: vaporist/plone-ml-service:v2
+        image: vaporist/plone-ml-service:v3 # English Comment: Updated image tag to the fixed version
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
         resources:
+          # English Comment: Define requests to guarantee resource availability and avoid 'Pending' status
+          requests:
+            memory: "1536Mi" # English Comment: Request 1.5 GiB minimum (recommended for PyTorch on a constrained node)
+            cpu: "500m"      # English Comment: Request 0.5 CPU core minimum
           limits:
-            memory: "4Gi"
-            cpu: "2"
+            # English Comment: Limits prevent resource runaway. 4Gi was too high for concurrent Pods.
+            memory: "2560Mi" # English Comment: Limit maximum RAM usage to 2.5 GiB
+            cpu: "1000m"     # English Comment: Limit maximum CPU usage to 1 full core
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: plone-ml-service
+  namespace: ml # English Comment: CRITICAL: Define the 'ml' namespace for the Service too
+  labels:
+    app: plone-ml-service # English Comment: Added label for consistency
 spec:
+  # English Comment: Type LoadBalancer is assumed based on your previous kubectl output
+  type: LoadBalancer 
   selector:
     app: plone-ml-service
   ports:
