@@ -1,0 +1,16 @@
+# requirements.txt file for PyTorch MLOps Service
+
+# Deep Learning framework for model.py
+torch
+torchvision
+
+# For the REST API (High performance web server)
+# FastAPI is the framework, uvicorn is the ASGI server
+fastapi
+uvicorn
+
+# Essential for fast numerical data and matrix manipulation
+numpy
+
+# For data handling, especially if used during preprocessing/inference
+pandas

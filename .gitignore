@@ -1,0 +1,14 @@
+# Ignore local environment files
+
+# Python Virtual Environment
+venv/
+
+# Environment Variables / Secrets
+.env
+
+# Compiled Python files
+__pycache__/
+*.pyc
+
+# MLflow files (if running locally without server)
+mlruns/
