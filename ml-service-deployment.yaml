@@ -1,11 +1,8 @@
-# File: ml-service-deployment.yaml
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: plone-ml-service
-  namespace: ml # English Comment: CRITICAL: Define the 'ml' namespace
+  namespace: ml
   labels:
     app: plone-ml-service
 spec:
@@ -20,13 +17,13 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: vaporist/plone-ml-service:v3 # English Comment: Updated image tag to the fixed version
+        image: vaporist/plone-ml-service:v3 # Updated image tag to the fixed version
         env:
         - name: MLFLOW_TRACKING_USERNAME
           valueFrom:
             secretKeyRef:
               name: mlflow-tracking
-              key: admin-user # Assurez-vous que le nom du Secret et les clés sont corrects
+              key: admin-user # Ensure the Secret name and keys are correct
         - name: MLFLOW_TRACKING_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -36,24 +33,24 @@ spec:
         ports:
         - containerPort: 8000
         resources:
-          # English Comment: Define requests to guarantee resource availability and avoid 'Pending' status
+          # Define requests to guarantee resource availability and avoid 'Pending' status
           requests:
-            memory: "1536Mi" # English Comment: Request 1.5 GiB minimum (recommended for PyTorch on a constrained node)
-            cpu: "500m"      # English Comment: Request 0.5 CPU core minimum
+            memory: "1536Mi" # Request 1.5 GiB minimum (recommended for PyTorch on a constrained node)
+            cpu: "500m"      # Request 0.5 CPU core minimum
           limits:
-            # English Comment: Limits prevent resource runaway. 4Gi was too high for concurrent Pods.
-            memory: "2560Mi" # English Comment: Limit maximum RAM usage to 2.5 GiB
-            cpu: "1000m"     # English Comment: Limit maximum CPU usage to 1 full core
+            # Limits prevent resource runaway. 4Gi was too high for concurrent Pods.
+            memory: "2560Mi" # Limit maximum RAM usage to 2.5 GiB
+            cpu: "1000m"     # Limit maximum CPU usage to 1 full core
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: plone-ml-service
-  namespace: ml # English Comment: CRITICAL: Define the 'ml' namespace for the Service too
+  namespace: ml # Define the 'ml' namespace for the Service too
   labels:
-    app: plone-ml-service # English Comment: Added label for consistency
+    app: plone-ml-service # Added label for consistency
 spec:
-  # English Comment: Type LoadBalancer is assumed based on your previous kubectl output
+  # Type LoadBalancer is assumed based on your previous kubectl output
   type: LoadBalancer 
   selector:
     app: plone-ml-service
