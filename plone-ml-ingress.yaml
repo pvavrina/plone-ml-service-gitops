@@ -1,0 +1,24 @@
+# plone-ml-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plone-ml-service-ingress
+  namespace: ml
+  annotations:
+    # Use the same hostname, but a dedicated path
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: mlflow.club-linux.ch
+    http:
+      paths:
+      - path: /ml/predict
+        pathType: Prefix
+        backend:
+          service:
+            name: plone-ml-service
+            port:
+              number: 80

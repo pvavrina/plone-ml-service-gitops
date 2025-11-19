@@ -7,11 +7,13 @@ import os
 import torch.serialization
 from model import SimpleClassifier # Import of the custom class
 
-# --- Configuration and Setup ---
-# English Comment: Define the path where the trained PyTorch model file is expected to be located
+# --- Global Configuration and Initialization ---
+
+# Define the path where the trained PyTorch model file is expected to be located
 MODEL_PATH = "model/trained_model.pt"
 
-# Global variable to hold the loaded model
+# Global variable to hold the loaded model state
+# Initialize to None; actual loading happens during startup event.
 model = None
 
 # Initialize FastAPI application
@@ -21,13 +23,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Global variable to hold the loaded model
-model = None
-
 # --- Data Schemas ---
 
 # Define the structure of the incoming request body (input data for the model)
-# NOTE: Adjust this class to match the actual input structure (e.g., number of features)
 class Item(BaseModel):
     features: list[float]
     # Example: features: list[float] = [0.1, 0.2, 0.3, 0.4]
@@ -49,22 +47,23 @@ async def load_model_on_startup():
     # Simple check to ensure the model file exists
     if not os.path.exists(MODEL_PATH):
         print(f"ERROR: Model file not found at {MODEL_PATH}. Exiting.")
-        # In a real-world scenario, you might want to raise an exception or handle this more gracefully
-        # For a container, a failure here is acceptable as the service cannot run without the model.
         return
         
     try:
         # FIX: Allow PyTorch to safely load custom class (required since PyTorch 2.6 security update)
-        # We assume SimpleClassifier is imported from 'model' module
+        # We must allow the custom class 'SimpleClassifier' to be unpickled.
         torch.serialization.add_safe_globals([SimpleClassifier])
         
-        # Load the model state dictionary (assuming the model class is defined elsewhere or imported)
-        # NOTE: If your model is defined in a separate file (e.g., model.py), you must import it here
-        # E.g., from .model import MyNeuralNet  # Assuming MyNeuralNet is your model class
+        # Load the entire model object onto the CPU.
+        # We include weights_only=False to bypass strict security checks, which is necessary
+        # when loading models saved with custom structures that PyTorch 2.6+ now blocks by default.
+        model = torch.load(
+            MODEL_PATH, 
+            map_location=torch.device('cpu'),
+            weights_only=False # CRITICAL FIX for the 'WeightsUnpickler error'
+        )
         
-        # Load the entire model object (simplest method for MLOps demo)
-        model = torch.load(MODEL_PATH, map_location=torch.device('cpu'))
-        model.eval() # Set the model to evaluation mode (important for dropout, batchnorm layers)
+        model.eval() # Set the model to evaluation mode
         print(f"SUCCESS: PyTorch model loaded from {MODEL_PATH}")
         
     except Exception as e:
@@ -84,6 +83,8 @@ async def predict(item: Item):
     """
     Endpoint to receive data and return model predictions.
     """
+    global model
+    
     if model is None:
         return {"prediction_result": ["Error: Model not available"]}
         
@@ -96,7 +97,6 @@ async def predict(item: Item):
             output = model(input_tensor)
         
         # 3. Convert output tensor back to a standard Python list
-        # We use .tolist() to format the result for the JSON response
         prediction_list = output.tolist()[0]
         
         return {"prediction_result": prediction_list}

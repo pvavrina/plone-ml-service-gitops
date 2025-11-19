@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: ml-api
-        image: vaporist/plone-ml-service:v3 # Updated image tag to the fixed version
+        image: vaporist/plone-ml-service:v5 # Updated image tag to the fixed version
         env:
         - name: MLFLOW_TRACKING_USERNAME
           valueFrom:
